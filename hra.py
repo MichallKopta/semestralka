@@ -383,7 +383,7 @@ class Hra:
             return "bonus_xp"
 
     def vygeneruj_nepritele(self):
-        """Vrátí instanci náhodného nepřítele podle levelu hráče."""
+        #random nepritel
         level = self.hrac.level
         if level <= 1:
             return Goblin()
@@ -393,7 +393,7 @@ class Hra:
             return random.choice([Kostlivec(), Troll()])
 
     def vygeneruj_predmet(self):
-        """Vrátí náhodný předmět ze seznamu."""
+        #random predmet
         return random.choice(self.MOZNE_PREDMETY)
 
     def udalost_souboj(self):
