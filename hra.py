@@ -201,7 +201,7 @@ class Mag(Hrac):
             return self.utoc_na(cil)
         poskozeni = self.utok + random.randint(5, 10) #ignor obrany
         cil.zivoty -= poskozeni
-        self.many -= 1
+        self.many -= 3
         print(f"🔥 {self.jmeno} seslal OHNIVOU KOULI na {cil.jmeno} za {poskozeni} poškození! "
               f"(mana: {self.many}/{self.max_many})")
         return poskozeni
