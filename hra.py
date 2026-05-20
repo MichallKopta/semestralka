@@ -15,6 +15,7 @@ class Predmet:
         return f"{self.nazev} – {self.popis}"
 
 
+
 class Zbran(Predmet):
     #zvysuje utok
 
@@ -24,7 +25,7 @@ class Zbran(Predmet):
 
     def pouzij(self, hrac):
         hrac.utok += self.bonus_utok
-        print(f"⚔️ Vybavil jsi se zbraní {self.nazev}! Útok +{self.bonus_utok} → celkem {hrac.utok}")
+        print(f"⚔️  Vybavil jsi se zbraní {self.nazev}! Útok +{self.bonus_utok} → celkem {hrac.utok}")
 
 
 class Lektvar(Predmet):
@@ -52,8 +53,9 @@ class Artefakt(Predmet):
         hrac.obrana += self.bonus_obrana
         print(f"✨ Aktivoval jsi artefakt {self.nazev}! Obrana +{self.bonus_obrana} → celkem {hrac.obrana}")
 
-#inventar
 
+
+#inventar
 class Inventar:
     def __init__(self):
         self.predmety = []  #predmety v invetari
@@ -104,7 +106,8 @@ class Postava:
         return self.zivoty > 0
 
     def stav(self):
-        return f"{self.jmeno}: ❤️ {self.zivoty}/{self.max_zivoty} HP | ⚔️ {self.utok} ATK | 🛡️ {self.obrana} DEF"
+        return f"{self.jmeno}: ❤️ {self.zivoty}/{self.max_zivoty} HP | ⚔️  {self.utok} ATK | 🛡️ {self.obrana} DEF"
+
 
 
 class Hrac(Postava):
@@ -120,7 +123,7 @@ class Hrac(Postava):
         self.pocet_mistnosti = 0    # statistika
 
     def ziskej_xp(self, hodnota):
-        #prida xp a dlasi level
+        #prida xp a dalsi level
         self.xp += hodnota
         print(f"✨ Získal jsi {hodnota} XP! (celkem {self.xp}/{self.xp_limit})")
         if self.xp >= self.xp_limit:
@@ -143,7 +146,14 @@ class Hrac(Postava):
         #prehled
         print(f"\n{'─'*40}")
         print(f"  {self.jmeno} (Level {self.level}) | XP {self.xp}/{self.xp_limit}")
-        print(f" ❤️ {self.zivoty}/{self.max_zivoty} HP  | ⚔️ {self.utok} ATK | 🛡️ {self.obrana} DEF")
+        print(f" ❤️ {self.zivoty}/{self.max_zivoty} HP  | ⚔️  {self.utok} ATK | 🛡️ {self.obrana} DEF")
+
+        # zobraz energii nebo manu pokud postava nejake ma
+        if hasattr(self, 'energie'):
+            print(f" ⚡ Energie: {self.energie}/{self.max_energie}")
+        if hasattr(self, 'many'):
+            print(f" 🔵 Mana:    {self.many}/{self.max_many}")
+
         print(f"{'─'*40}")
 
 
@@ -152,34 +162,55 @@ class Valecnik(Hrac):
 
     def __init__(self, jmeno):
         super().__init__(jmeno, zivoty=80, utok=14, obrana=5)
-        self.typ = "⚔️ Válečník"
+        self.typ = "⚔️  Válečník"
+        self.energie = 5        # aktualni energie
+        self.max_energie = 5    # maximalni energie
+        self.cena_schopnosti = 3  # kolik energie stoji specialni utok
 
     def specialni_schopnost(self, cil):
-        #specialniutok
+        # zkontroluje jestli ma dost energie
+        if self.energie < self.cena_schopnosti:
+            print(f"⚡ Nemáš dost energie! ({self.energie}/{self.max_energie}) Útočíš normálně.")
+            return self.utoc_na(cil)
+        self.energie -= self.cena_schopnosti
         poskozeni = (self.utok * 2) - cil.obrana
         poskozeni = max(1, poskozeni)
         cil.zivoty -= poskozeni
-        print(f"💥 {self.jmeno} použil DRTIVÝ ÚDER na {cil.jmeno} za {poskozeni} poškození!")
+        print(f"💥 {self.jmeno} použil DRTIVÝ ÚDER na {cil.jmeno} za {poskozeni} poškození! "
+              f"(energie: {self.energie}/{self.max_energie})")
         return poskozeni
+
+    def nabij_energii(self):
+        # po kazde mistnosti +1 energie (max do limitu)
+        if self.energie < self.max_energie:
+            self.energie += 1
+            print(f"⚡ Energie nabita: {self.energie}/{self.max_energie}")
 
 
 class Mag(Hrac):
 
-
     def __init__(self, jmeno):
         super().__init__(jmeno, zivoty=55, utok=18, obrana=2)
         self.typ = "🧙 Mág"
-        self.many = 3  #pocet specialnich utoku
+        self.many = 3       # aktualni mana
+        self.max_many = 5   # maximalni mana
 
     def specialni_schopnost(self, cil):
         if self.many <= 0:
-            print("🔵 Nemáš dostatek many! Útočíš normálně.")
+            print(f"🔵 Nemáš dostatek many! ({self.many}/{self.max_many}) Útočíš normálně.")
             return self.utoc_na(cil)
         poskozeni = self.utok + random.randint(5, 10) #ignor obrany
         cil.zivoty -= poskozeni
         self.many -= 1
-        print(f"🔥 {self.jmeno} seslal OHNIVOU KOULI na {cil.jmeno} za {poskozeni} poškození! (many: {self.many})")
+        print(f"🔥 {self.jmeno} seslal OHNIVOU KOULI na {cil.jmeno} za {poskozeni} poškození! "
+              f"(mana: {self.many}/{self.max_many})")
         return poskozeni
+
+    def nabij_energii(self):
+        # po kazde mistnosti se mágovi doplni 1 mana (max do limitu)
+        if self.many < self.max_many:
+            self.many += 1
+            print(f"🔵 Mana doplněna: {self.many}/{self.max_many}")
 
 
 class Lovec(Hrac):
@@ -187,17 +218,34 @@ class Lovec(Hrac):
     def __init__(self, jmeno):
         super().__init__(jmeno, zivoty=65, utok=12, obrana=4)
         self.typ = "🏹 Lovec"
-        self.sance_uhyb = 0.25  #25%
+        self.sance_uhyb = 0.25    # 25%
+        self.energie = 5          # aktualni energie
+        self.max_energie = 5      # maximalni energie
+        self.cena_schopnosti = 3  # kolik energie stoji specialni utok
 
     def specialni_schopnost(self, cil):
+        # zkontroluje jestli ma dost energie
+        if self.energie < self.cena_schopnosti:
+            print(f"⚡ Nemáš dost energie! ({self.energie}/{self.max_energie}) Útočíš normálně.")
+            return self.utoc_na(cil)
+        self.energie -= self.cena_schopnosti
         poskozeni = self.utok + random.randint(3, 8)
         cil.zivoty -= poskozeni
-        print(f"🎯 {self.jmeno} vystřelil PŘESNÝ VÝSTŘEL na {cil.jmeno} za {poskozeni} poškození!")
+        print(f"🎯 {self.jmeno} vystřelil PŘESNÝ VÝSTŘEL na {cil.jmeno} za {poskozeni} poškození! "
+              f"(energie: {self.energie}/{self.max_energie})")
         return poskozeni
+
+    def nabij_energii(self):
+        # po kazde mistnosti +1 energie (max do limitu)
+        if self.energie < self.max_energie:
+            self.energie += 1
+            print(f"⚡ Energie nabita: {self.energie}/{self.max_energie}")
 
     def zkus_uhnout(self):
         #vraci true/false
         return random.random() < self.sance_uhyb
+
+
 
 
 class Nepritel(Postava):
@@ -248,12 +296,12 @@ class Souboj:
         self.nepritel = nepritel
 
     def proved(self):
-        #spousti souboj, vraci true/flase
+        #spousti souboj, vraci true/false
         h = self.hrac
         n = self.nepritel
         emoji = getattr(n, 'emoji', '👾')
 
-        print(f"\n ⚔️Souboj: {h.jmeno} vs {emoji} {n.jmeno}!")
+        print(f"\n ⚔️ Souboj: {h.jmeno} vs {emoji} {n.jmeno}!")
         print(f"  {n.stav()}")
 
         while h.je_nazivu() and n.je_nazivu():
@@ -264,7 +312,7 @@ class Souboj:
             if volba == "1":
                 #normalní utok
                 pos = h.utoc_na(n)
-                print(f" ⚔️ Zasáhl jsi za {pos} poškození!")
+                print(f" ⚔️  Zasáhl jsi za {pos} poškození!")
 
             elif volba == "2":
                 #speciálni schopnost
@@ -307,7 +355,7 @@ class Souboj:
                     pos_n = n.utoc_na(h)
                     print(f"💢 {n.jmeno} tě zasáhl za {pos_n} poškození!")
 
-        #po soubaji
+        #po souboji
         if h.je_nazivu():
             print(f"\n ✅ Porazil jsi {n.jmeno}!")
             h.ziskej_xp(n.xp_odmena)
@@ -318,9 +366,12 @@ class Souboj:
             return False
 
 
+
+
+
+
 class Hra:
     #data pro hru a rizeni
-
 
     MOZNE_PREDMETY = [
         Zbran("Rezavý meč", bonus_utok=3),
@@ -335,10 +386,6 @@ class Hra:
         self.hrac = None
         self.bezi = True
 
-
-
-
-
     def vytvor_postavu(self):
         #tvorba postavy
         print("\n" + "="*45)
@@ -347,7 +394,7 @@ class Hra:
         jmeno = input("\nZadej jméno svého dobrodruha: ").strip() or "Hrdina" #pokud nic nenapise da Hrdina
 
         print("\nVyber typ postavy:")
-        print("  [1] ⚔️ Válečník  – silný útočník s hodně HP")
+        print("  [1] ⚔️  Válečník  – silný útočník s hodně HP")
         print("  [2] 🧙 Mág       – mocná magie, ale slabý")
         print("  [3] 🏹 Lovec     – rychlý, šance na úhyb")
         volba = input("> ").strip()
@@ -364,7 +411,6 @@ class Hra:
 
         print(f"\n ✅ Vítej, {self.hrac.jmeno} – {self.hrac.typ}!")
         print(f"   {self.hrac.stav()}")
-
 
     def vygeneruj_udalost(self):
         #random vybere jaka mistnost bude dalsi
@@ -440,11 +486,11 @@ class Hra:
         print(f"\n 📖 Nalezl jsi starý svitek. Získáváš {bonus} XP!")
         self.hrac.ziskej_xp(bonus)
 
-
-
     def herni_smycka(self):
         #loop kterej ridi hru
         input("\nStiskni ENTER a vydej se do kobky...")
+
+
 
         while self.bezi and self.hrac.je_nazivu():
             self.hrac.pocet_mistnosti += 1
@@ -474,12 +520,15 @@ class Hra:
                 self.konec(vyhral=False)
                 break
 
+            # po kazde mistnosti nabij energii/manu (pokud postava metodu ma)
+            if self.bezi and hasattr(self.hrac, 'nabij_energii'):
+                self.hrac.nabij_energii()
+
             if self.bezi:
                 input("\n[ENTER] – pokračuj do další místnosti...")
 
 
     def konec(self, vyhral):
-        
         h = self.hrac
         print(f"\n\n{'='*45}")
         if vyhral:
@@ -498,15 +547,10 @@ class Hra:
         self.vytvor_postavu()
         self.herni_smycka()
 
+
+
 #spusteni programu
 
 if __name__ == "__main__":
     hra = Hra()   # instance hry
     hra.spust()
-
-
-
-
-
-
-
